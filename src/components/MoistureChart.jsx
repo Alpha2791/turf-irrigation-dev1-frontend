@@ -60,9 +60,6 @@ const MoistureChart = () => {
   const wiltTimestamp = forecast?.wilt_point_hit?.slice(0, 13);
   const irrigationTip = forecast?.recommended_irrigation_mm;
 
-  const formattedWiltTimestamp = wiltTimestamp?.replace(/:\d{2}$/, "");
-  const hasWiltTimestampInData = data.some(d => d.timestamp === formattedWiltTimestamp);
-
   return (
     <div>
       <h2>Soil Moisture, ET, Rainfall & Irrigation</h2>
@@ -115,9 +112,9 @@ const MoistureChart = () => {
 
           <ReferenceLine y={wiltPoint} yAxisId="left" stroke="red" strokeDasharray="4 4" label="Wilt Point" />
 
-          {formattedWiltTimestamp && hasWiltTimestampInData && (
+          {wiltTimestamp && data.some(d => d.timestamp === wiltTimestamp) && (
             <ReferenceLine
-              x={formattedWiltTimestamp}
+              x={wiltTimestamp}
               stroke="orange"
               strokeDasharray="3 3"
               label="Wilt Forecast"
@@ -125,16 +122,25 @@ const MoistureChart = () => {
             />
           )}
 
-          {irrigationTip != null && upperLimit >= 0 && upperLimit <= 100 && (
-            <ReferenceLine
-              y={upperLimit}
-              yAxisId="left"
-              stroke="blue"
-              strokeDasharray="3 3"
-              label={`Target: ${upperLimit} mm`}
-              ifOverflow="extendDomain"
-            />
-          )}
+          {forecast?.recommended_irrigation_mm != null && (() => {
+            const moistValues = data.map(d => d.predicted_moisture_mm);
+            const minMoist = Math.min(...moistValues);
+            const maxMoist = Math.max(...moistValues);
+            const y = forecast.recommended_irrigation_mm;
+            if (y >= minMoist && y <= maxMoist) {
+              return (
+                <ReferenceLine
+                  y={y}
+                  yAxisId="left"
+                  stroke="blue"
+                  strokeDasharray="3 3"
+                  label={`Suggest: ${y} mm`}
+                  ifOverflow="extendDomain"
+                />
+              );
+            }
+            return null;
+          })()}
 
           <Line yAxisId="left" type="monotone" dataKey="predicted_moisture_mm" name="Moisture" stroke="#007acc" strokeWidth={2} dot={false} />
           <Bar yAxisId="left" dataKey="irrigation_mm" name="Irrigation" fill="#99ccff" barSize={10} />
