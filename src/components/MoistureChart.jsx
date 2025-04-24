@@ -59,6 +59,7 @@ const MoistureChart = () => {
 
   const wiltTimestamp = forecast?.wilt_point_hit?.slice(0, 13);
   const irrigationTip = forecast?.recommended_irrigation_mm;
+  const wiltIsValid = data.some(d => d.timestamp === wiltTimestamp);
 
   return (
     <div>
@@ -112,20 +113,19 @@ const MoistureChart = () => {
 
           <ReferenceLine y={wiltPoint} yAxisId="left" stroke="red" strokeDasharray="4 4" label="Wilt Point" />
 
-          {wiltTimestamp && (
-          	<ReferenceLine x={wiltTimestamp} stroke="orange" strokeDasharray="3 3" label="Wilt Forecast" />
-	  )}
+          {wiltIsValid && (
+            <ReferenceLine x={wiltTimestamp} stroke="orange" strokeDasharray="3 3" label="Wilt Forecast" />
+          )}
 
- 	  {forecast?.recommended_irrigation_mm != null && (
-  	  	<ReferenceLine
-    		  y={forecast.recommended_irrigation_mm}
-    		  yAxisId="left"
-    		  stroke="blue"
-    		  strokeDasharray="3 3"
-    		  label={`Suggest: ${forecast.recommended_irrigation_mm} mm`}
-  	 />
-	)}
-
+          {forecast?.recommended_irrigation_mm != null && (
+            <ReferenceLine
+              y={forecast.recommended_irrigation_mm}
+              yAxisId="left"
+              stroke="blue"
+              strokeDasharray="3 3"
+              label={`Suggest: ${forecast.recommended_irrigation_mm} mm`}
+            />
+          )}
 
           <Line yAxisId="left" type="monotone" dataKey="predicted_moisture_mm" name="Moisture" stroke="#007acc" strokeWidth={2} dot={false} />
           <Bar yAxisId="left" dataKey="irrigation_mm" name="Irrigation" fill="#99ccff" barSize={10} />
