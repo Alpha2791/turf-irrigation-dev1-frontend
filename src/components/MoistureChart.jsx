@@ -109,43 +109,52 @@ const MoistureChart = () => {
       )}
 
       <ResponsiveContainer width="100%" height={500}>
-        <ComposedChart data={data} margin={{ top: 20, right: 40, left: 20, bottom: 70 }}>
+        <ComposedChart
+          data={data}
+          margin={{ top: 20, right: 40, left: 20, bottom: 70 }}
+        >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="timestamp" angle={-45} textAnchor="end" height={60} interval={Math.ceil(data.length / 12)} />
+          <XAxis
+            dataKey="timestamp"
+            angle={-45}
+            textAnchor="end"
+            height={60}
+            interval={Math.ceil(data.length / 12)}
+            id="0" // <-- ensure this matches ReferenceLine xAxisId
+          />
           <YAxis yAxisId="left" label={{ value: 'Moisture / Inputs (mm)', angle: -90, position: 'insideLeft' }} />
           <YAxis yAxisId="right" orientation="right" label={{ value: 'ET (mm/hr)', angle: -90, position: 'insideRight' }} />
           <Tooltip />
           <Legend verticalAlign="top" />
 
-          <ReferenceLine y={wiltPoint} yAxisId="left" stroke="red" strokeDasharray="4 4" label="Wilt Point" />
+          <ReferenceLine yAxisId="left" y={wiltPoint} stroke="red" strokeDasharray="4 4" label="Wilt Point" />
 
-          {isWiltXValid && (
+          {wiltTimestamp && data.find(d => d.timestamp === wiltTimestamp) && (
             <ReferenceLine
-              x={wiltTimestamp}
-              xAxisId="0"
-              stroke="orange"
-              strokeDasharray="3 3"
-              label="Wilt Forecast"
-              ifOverflow="extendDomain"
-            />
-          )}
+            x={wiltTimestamp}
+            xAxisId="0"
+            stroke="orange"
+            strokeDasharray="3 3"
+            label="Wilt Forecast"
+         />
+       )}
 
-          {isWiltYValid && (
-            <ReferenceLine
-              y={irrigationTip}
-              yAxisId="left"
-              stroke="blue"
-              strokeDasharray="3 3"
-              label={`Suggest: ${irrigationTip} mm`}
-              ifOverflow="extendDomain"
-            />
-          )}
+       {forecast?.recommended_irrigation_mm != null && (
+         <ReferenceLine
+           yAxisId="left"
+           y={forecast.recommended_irrigation_mm}
+           stroke="blue"
+           strokeDasharray="3 3"
+           label={`Suggest: ${forecast.recommended_irrigation_mm} mm`}
+         />
+      )}
 
-          <Line yAxisId="left" type="monotone" dataKey="predicted_moisture_mm" name="Moisture" stroke="#007acc" strokeWidth={2} dot={false} />
-          <Bar yAxisId="left" dataKey="irrigation_mm" name="Irrigation" fill="#99ccff" barSize={10} />
-          <Bar yAxisId="left" dataKey="rainfall_mm" name="Rainfall" fill="#3399ff" barSize={10} />
-          <Line yAxisId="right" type="monotone" dataKey="ET_mm_hour" name="ET" stroke="#00cc66" strokeDasharray="4 4" dot={false} />
-        </ComposedChart>
+      <Line yAxisId="left" type="monotone" dataKey="predicted_moisture_mm" name="Moisture" stroke="#007acc" strokeWidth={2} dot={false} />
+      <Bar yAxisId="left" dataKey="irrigation_mm" name="Irrigation" fill="#99ccff" barSize={10} />
+      <Bar yAxisId="left" dataKey="rainfall_mm" name="Rainfall" fill="#3399ff" barSize={10} />
+      <Line yAxisId="right" type="monotone" dataKey="ET_mm_hour" name="ET" stroke="#00cc66" strokeDasharray="4 4" dot={false} />
+</ComposedChart>
+
       </ResponsiveContainer>
     </div>
   );
