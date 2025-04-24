@@ -37,7 +37,7 @@ const MoistureChart = () => {
 
     const fetchForecast = async () => {
       try {
-        const res = await axios.get(`https://turf-irrigation-dev1-backend.onrender.com/wilt-forecast?wilt_point=${wiltPoint}`);
+        const res = await axios.get(`https://turf-irrigation-dev1-backend.onrender.com/wilt-forecast?wilt_point=${wiltPoint}&upper_limit=${upperLimit}`);
         setForecast(res.data);
         console.log("Wilt forecast:", res.data);
       } catch (err) {
@@ -47,7 +47,7 @@ const MoistureChart = () => {
 
     fetchData();
     fetchForecast();
-  }, [wiltPoint]);
+  }, [wiltPoint, upperLimit]);
 
   useEffect(() => {
     localStorage.setItem("wiltPoint", wiltPoint);
@@ -59,13 +59,7 @@ const MoistureChart = () => {
 
   const wiltTimestamp = forecast?.wilt_point_hit?.slice(0, 13);
   const irrigationTip = forecast?.recommended_irrigation_mm;
-
-  const moistValues = data.map(d => d.predicted_moisture_mm).filter(v => typeof v === 'number');
-  const minMoist = Math.min(...moistValues);
-  const maxMoist = Math.max(...moistValues);
-
-  const isWiltYValid = typeof irrigationTip === 'number' && !isNaN(irrigationTip) && irrigationTip >= minMoist && irrigationTip <= maxMoist;
-  const isWiltXValid = wiltTimestamp && data.some(d => d.timestamp === wiltTimestamp);
+  const showWiltReference = wiltTimestamp && data.some(d => d.timestamp === wiltTimestamp);
 
   return (
     <div>
@@ -80,7 +74,7 @@ const MoistureChart = () => {
           onChange={(e) => setWiltPoint(parseFloat(e.target.value))}
           step="0.1"
           min="0"
-        /> mm
+        /> %
       </div>
 
       <div style={{ marginBottom: '2rem' }}>
@@ -92,7 +86,7 @@ const MoistureChart = () => {
           onChange={(e) => setUpperLimit(parseFloat(e.target.value))}
           step="0.1"
           min={wiltPoint + 0.1}
-        /> mm
+        /> %
       </div>
 
       {forecast && (
@@ -109,52 +103,41 @@ const MoistureChart = () => {
       )}
 
       <ResponsiveContainer width="100%" height={500}>
-        <ComposedChart
-          data={data}
-          margin={{ top: 20, right: 40, left: 20, bottom: 70 }}
-        >
+        <ComposedChart data={data} margin={{ top: 20, right: 40, left: 20, bottom: 70 }}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis
-            dataKey="timestamp"
-            angle={-45}
-            textAnchor="end"
-            height={60}
-            interval={Math.ceil(data.length / 12)}
-            id="0" // <-- ensure this matches ReferenceLine xAxisId
-          />
+          <XAxis dataKey="timestamp" xAxisId="0" angle={-45} textAnchor="end" height={60} interval={Math.ceil(data.length / 12)} />
           <YAxis yAxisId="left" label={{ value: 'Moisture / Inputs (mm)', angle: -90, position: 'insideLeft' }} />
           <YAxis yAxisId="right" orientation="right" label={{ value: 'ET (mm/hr)', angle: -90, position: 'insideRight' }} />
           <Tooltip />
           <Legend verticalAlign="top" />
 
-          <ReferenceLine yAxisId="left" y={wiltPoint} stroke="red" strokeDasharray="4 4" label="Wilt Point" />
+          <ReferenceLine y={wiltPoint} yAxisId="left" stroke="red" strokeDasharray="4 4" label="Wilt Point" />
 
-          {wiltTimestamp && data.find(d => d.timestamp === wiltTimestamp) && (
+          {showWiltReference && (
             <ReferenceLine
-            x={wiltTimestamp}
-            xAxisId="0"
-            stroke="orange"
-            strokeDasharray="3 3"
-            label="Wilt Forecast"
-         />
-       )}
+              x={wiltTimestamp}
+              xAxisId="0"
+              stroke="orange"
+              strokeDasharray="3 3"
+              label="Wilt Forecast"
+            />
+          )}
 
-       {forecast?.recommended_irrigation_mm != null && (
-         <ReferenceLine
-           yAxisId="left"
-           y={forecast.recommended_irrigation_mm}
-           stroke="blue"
-           strokeDasharray="3 3"
-           label={`Suggest: ${forecast.recommended_irrigation_mm} mm`}
-         />
-      )}
+          {Number.isFinite(irrigationTip) && Number.isFinite(upperLimit) && (
+            <ReferenceLine
+              y={upperLimit - irrigationTip}
+              yAxisId="left"
+              stroke="blue"
+              strokeDasharray="3 3"
+              label={`Target: ${upperLimit - irrigationTip} mm`}
+            />
+          )}
 
-      <Line yAxisId="left" type="monotone" dataKey="predicted_moisture_mm" name="Moisture" stroke="#007acc" strokeWidth={2} dot={false} />
-      <Bar yAxisId="left" dataKey="irrigation_mm" name="Irrigation" fill="#99ccff" barSize={10} />
-      <Bar yAxisId="left" dataKey="rainfall_mm" name="Rainfall" fill="#3399ff" barSize={10} />
-      <Line yAxisId="right" type="monotone" dataKey="ET_mm_hour" name="ET" stroke="#00cc66" strokeDasharray="4 4" dot={false} />
-</ComposedChart>
-
+          <Line yAxisId="left" type="monotone" dataKey="predicted_moisture_mm" name="Moisture" stroke="#007acc" strokeWidth={2} dot={false} />
+          <Bar yAxisId="left" dataKey="irrigation_mm" name="Irrigation" fill="#99ccff" barSize={10} />
+          <Bar yAxisId="left" dataKey="rainfall_mm" name="Rainfall" fill="#3399ff" barSize={10} />
+          <Line yAxisId="right" type="monotone" dataKey="ET_mm_hour" name="ET" stroke="#00cc66" strokeDasharray="4 4" dot={false} />
+        </ComposedChart>
       </ResponsiveContainer>
     </div>
   );
