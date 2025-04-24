@@ -117,7 +117,17 @@ const MoistureChart = () => {
               x={wiltTimestamp}
               stroke="orange"
               strokeDasharray="3 3"
-              label={`Wilt Forecast${irrigationTip != null ? `: ${irrigationTip} mm` : ""}`}
+              label="Wilt Forecast"
+            />
+          )}
+
+          {irrigationTip != null && (
+            <ReferenceLine
+              y={irrigationTip}
+              yAxisId="left"
+              stroke="blue"
+              strokeDasharray="3 3"
+              label={`Suggest: ${irrigationTip} mm`}
             />
           )}
 
