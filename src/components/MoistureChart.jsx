@@ -118,16 +118,17 @@ const MoistureChart = () => {
               stroke="orange"
               strokeDasharray="3 3"
               label="Wilt Forecast"
+              ifOverflow="extendDomain"
             />
           )}
 
-          {irrigationTip != null && (
+          {irrigationTip != null && data.some(d => d.predicted_moisture_mm <= upperLimit) && (
             <ReferenceLine
-              y={irrigationTip}
+              y={upperLimit}
               yAxisId="left"
               stroke="blue"
               strokeDasharray="3 3"
-              label={`Suggest: ${irrigationTip} mm`}
+              label={`Target: ${upperLimit}%`}
             />
           )}
 
