@@ -60,9 +60,12 @@ const MoistureChart = () => {
   const wiltTimestamp = forecast?.wilt_point_hit?.slice(0, 13);
   const irrigationTip = forecast?.recommended_irrigation_mm;
 
-  const moistValues = data.map(d => d.predicted_moisture_mm);
+  const moistValues = data.map(d => d.predicted_moisture_mm).filter(v => typeof v === 'number');
   const minMoist = Math.min(...moistValues);
   const maxMoist = Math.max(...moistValues);
+
+  const isWiltYValid = typeof irrigationTip === 'number' && !isNaN(irrigationTip) && irrigationTip >= minMoist && irrigationTip <= maxMoist;
+  const isWiltXValid = wiltTimestamp && data.some(d => d.timestamp === wiltTimestamp);
 
   return (
     <div>
@@ -116,7 +119,7 @@ const MoistureChart = () => {
 
           <ReferenceLine y={wiltPoint} yAxisId="left" stroke="red" strokeDasharray="4 4" label="Wilt Point" />
 
-          {wiltTimestamp && data.some(d => d.timestamp === wiltTimestamp) && (
+          {isWiltXValid && (
             <ReferenceLine
               x={wiltTimestamp}
               stroke="orange"
@@ -126,7 +129,7 @@ const MoistureChart = () => {
             />
           )}
 
-          {irrigationTip != null && irrigationTip >= minMoist && irrigationTip <= maxMoist && (
+          {isWiltYValid && (
             <ReferenceLine
               y={irrigationTip}
               yAxisId="left"
