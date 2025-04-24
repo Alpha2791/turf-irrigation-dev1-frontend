@@ -76,7 +76,7 @@ const MoistureChart = () => {
           onChange={(e) => setWiltPoint(parseFloat(e.target.value))}
           step="0.1"
           min="0"
-        /> %
+        /> mm
       </div>
 
       <div style={{ marginBottom: '2rem' }}>
@@ -88,7 +88,7 @@ const MoistureChart = () => {
           onChange={(e) => setUpperLimit(parseFloat(e.target.value))}
           step="0.1"
           min={wiltPoint + 0.1}
-        /> %
+        /> mm
       </div>
 
       {forecast && (
@@ -125,13 +125,14 @@ const MoistureChart = () => {
             />
           )}
 
-          {irrigationTip != null && data.some(d => d.predicted_moisture_mm <= upperLimit) && (
+          {irrigationTip != null && upperLimit >= 0 && upperLimit <= 100 && (
             <ReferenceLine
               y={upperLimit}
               yAxisId="left"
               stroke="blue"
               strokeDasharray="3 3"
-              label={`Target: ${upperLimit}%`}
+              label={`Target: ${upperLimit} mm`}
+              ifOverflow="extendDomain"
             />
           )}
 
