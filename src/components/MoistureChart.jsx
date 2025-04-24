@@ -60,6 +60,8 @@ const MoistureChart = () => {
   const wiltTimestamp = forecast?.wilt_point_hit?.slice(0, 13);
   const irrigationTip = forecast?.recommended_irrigation_mm;
 
+  const hasWiltTimestampInData = data.some(d => d.timestamp === wiltTimestamp);
+
   return (
     <div>
       <h2>Soil Moisture, ET, Rainfall & Irrigation</h2>
@@ -112,7 +114,7 @@ const MoistureChart = () => {
 
           <ReferenceLine y={wiltPoint} yAxisId="left" stroke="red" strokeDasharray="4 4" label="Wilt Point" />
 
-          {wiltTimestamp && (
+          {wiltTimestamp && hasWiltTimestampInData && (
             <ReferenceLine
               x={wiltTimestamp}
               stroke="orange"
