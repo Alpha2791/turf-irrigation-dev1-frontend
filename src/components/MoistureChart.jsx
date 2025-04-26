@@ -11,10 +11,12 @@ const MoistureChart = () => {
     const saved = localStorage.getItem("wiltPoint");
     return saved ? parseFloat(saved) : 18;
   });
+
   const [upperLimit, setUpperLimit] = useState(() => {
     const saved = localStorage.getItem("upperLimit");
     return saved ? parseFloat(saved) : 22;
   });
+
   const [forecast, setForecast] = useState(null);
 
   useEffect(() => {
@@ -56,6 +58,7 @@ const MoistureChart = () => {
   }, [upperLimit]);
 
   const wiltTimestamp = forecast?.wilt_point_hit?.slice(0, 13);
+  const irrigationTip = forecast?.recommended_irrigation_mm;
 
   return (
     <div>
@@ -109,9 +112,18 @@ const MoistureChart = () => {
 
           <ReferenceLine y={wiltPoint} yAxisId="left" stroke="red" strokeDasharray="4 4" label="Wilt Point" />
 
-          {wiltTimestamp && data.length > 0 && data.some(d => d.timestamp === wiltTimestamp) && (
-            <ReferenceLine x={wiltTimestamp} stroke="orange" strokeDasharray="3 3" label="Wilt Forecast" />
-          )}
+          {wiltTimestamp && (() => {
+            const timestamps = data.map(d => d.timestamp);
+            const minTimestamp = Math.min(...timestamps.map(t => new Date(t).getTime()));
+            const maxTimestamp = Math.max(...timestamps.map(t => new Date(t).getTime()));
+            const wiltTime = new Date(wiltTimestamp).getTime();
+            if (wiltTime >= minTimestamp && wiltTime <= maxTimestamp) {
+              return (
+                <ReferenceLine x={wiltTimestamp} stroke="orange" strokeDasharray="3 3" label="Wilt Forecast" />
+              );
+            }
+            return null;
+          })()}
 
           <Line yAxisId="left" type="monotone" dataKey="predicted_moisture_mm" name="Moisture" stroke="#007acc" strokeWidth={2} dot={false} />
           <Bar yAxisId="left" dataKey="irrigation_mm" name="Irrigation" fill="#99ccff" barSize={10} />
