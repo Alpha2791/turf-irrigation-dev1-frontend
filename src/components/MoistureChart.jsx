@@ -109,7 +109,7 @@ const MoistureChart = () => {
 
           <ReferenceLine y={wiltPoint} yAxisId="left" stroke="red" strokeDasharray="4 4" label="Wilt Point" />
 
-          {wiltTimestamp && data.find(d => d.timestamp === wiltTimestamp) && (
+          {wiltTimestamp && data.length > 0 && data.some(d => d.timestamp === wiltTimestamp) && (
             <ReferenceLine x={wiltTimestamp} stroke="orange" strokeDasharray="3 3" label="Wilt Forecast" />
           )}
 
