@@ -11,12 +11,10 @@ const MoistureChart = () => {
     const saved = localStorage.getItem("wiltPoint");
     return saved ? parseFloat(saved) : 18;
   });
-
   const [upperLimit, setUpperLimit] = useState(() => {
     const saved = localStorage.getItem("upperLimit");
     return saved ? parseFloat(saved) : 22;
   });
-
   const [forecast, setForecast] = useState(null);
 
   useEffect(() => {
@@ -58,8 +56,6 @@ const MoistureChart = () => {
   }, [upperLimit]);
 
   const wiltTimestamp = forecast?.wilt_point_hit?.slice(0, 13);
-  const irrigationTip = forecast?.recommended_irrigation_mm;
-  const showWiltReference = wiltTimestamp && data.some(d => d.timestamp === wiltTimestamp);
 
   return (
     <div>
@@ -105,7 +101,7 @@ const MoistureChart = () => {
       <ResponsiveContainer width="100%" height={500}>
         <ComposedChart data={data} margin={{ top: 20, right: 40, left: 20, bottom: 70 }}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="timestamp" xAxisId="0" angle={-45} textAnchor="end" height={60} interval={Math.ceil(data.length / 12)} />
+          <XAxis dataKey="timestamp" angle={-45} textAnchor="end" height={60} interval={Math.ceil(data.length / 12)} />
           <YAxis yAxisId="left" label={{ value: 'Moisture / Inputs (mm)', angle: -90, position: 'insideLeft' }} />
           <YAxis yAxisId="right" orientation="right" label={{ value: 'ET (mm/hr)', angle: -90, position: 'insideRight' }} />
           <Tooltip />
@@ -113,24 +109,8 @@ const MoistureChart = () => {
 
           <ReferenceLine y={wiltPoint} yAxisId="left" stroke="red" strokeDasharray="4 4" label="Wilt Point" />
 
-          {showWiltReference && (
-            <ReferenceLine
-              x={wiltTimestamp}
-              xAxisId="0"
-              stroke="orange"
-              strokeDasharray="3 3"
-              label="Wilt Forecast"
-            />
-          )}
-
-          {Number.isFinite(irrigationTip) && Number.isFinite(upperLimit) && (
-            <ReferenceLine
-              y={upperLimit - irrigationTip}
-              yAxisId="left"
-              stroke="blue"
-              strokeDasharray="3 3"
-              label={`Target: ${upperLimit - irrigationTip} mm`}
-            />
+          {wiltTimestamp && data.find(d => d.timestamp === wiltTimestamp) && (
+            <ReferenceLine x={wiltTimestamp} stroke="orange" strokeDasharray="3 3" label="Wilt Forecast" />
           )}
 
           <Line yAxisId="left" type="monotone" dataKey="predicted_moisture_mm" name="Moisture" stroke="#007acc" strokeWidth={2} dot={false} />
